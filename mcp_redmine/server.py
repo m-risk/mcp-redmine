@@ -297,9 +297,16 @@ async def oauth_protected_resource(request: Request) -> Response:
 
 
 async def oauth_authorization_server(request: Request) -> Response:
-    """RFC 8414 authorization server metadata advertising this server's proxy endpoints."""
+    """RFC 8414 authorization server metadata advertising this server's proxy endpoints.
+
+    The "issuer" must match the "iss" claim actually present in the access
+    tokens returned by /token (which proxies Keycloak verbatim, so the real
+    issuer is Keycloak's realm URL), not this server's own domain. Clients
+    that strictly validate issuer identity (e.g. Claude Desktop's native MCP
+    connector) refuse the connection otherwise.
+    """
     return JSONResponse({
-        "issuer": MCP_SERVER_URL,
+        "issuer": OAUTH_ISSUER_URL,
         "authorization_endpoint": f"{MCP_SERVER_URL}/authorize",
         "token_endpoint": f"{MCP_SERVER_URL}/token",
         "registration_endpoint": f"{MCP_SERVER_URL}/register",
